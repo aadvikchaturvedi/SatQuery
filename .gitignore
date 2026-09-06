@@ -1,0 +1,71 @@
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Environment variables / secrets
+.env
+.env.*
+
+# IDEs
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build files
+build/
+dist/
+*.egg-info/
+
+# Python testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ML / Data files
+*.csv
+*.xlsx
+*.xls
+*.parquet
+*.pkl
+*.pickle
+*.joblib
+
+# Model files
+*.pt
+*.pth
+*.onnx
+*.h5
+*.keras
+*.safetensors
+
+# Large datasets
+data/
+datasets/
+models/
+checkpoints/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Secrets / credentials
+*.pem
+*.key
+credentials.json
+secrets.json
