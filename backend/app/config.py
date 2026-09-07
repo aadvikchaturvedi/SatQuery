@@ -33,11 +33,10 @@ class Settings(BaseSettings):
     gemini_api_key: str | None = Field(default=None)
     gemini_text_model: str = Field(default="gemini-3.8-flash")
 
-    # VQA_BACKEND selects the implementation behind the single-image VQA /
-    # captioning tools. "gemini" is the only backend wired up today; "qwen"
-    # is a reserved value for the fine-tuned Qwen2.5-VL-LoRA adapter once its
-    # weights exist (see VQA/inference.py) — swapping it in later should not
-    # require touching the agent/router layer, only tools/vqa_tool.py.
+    # VQA_BACKEND selects the implementation behind the single-image VQA
+    # tool. "gemini" calls Gemini directly. "qwen" uses the fine-tuned
+    # Qwen2.5-VL-3B + LoRA adapter (see VQA/inference.py, weights at
+    # final_qwen_lora/ in the repo root), bridged via tools/qwen_client.py.
     vqa_backend: str = Field(default="gemini")
 
     # --- change-detection checkpoint -----------------------------------------

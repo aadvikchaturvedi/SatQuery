@@ -5,20 +5,20 @@ VQA_BACKEND=gemini (current default) calls Gemini directly with a
 remote-sensing-framed prompt: a real, working integration, but not the
 domain-fine-tuned model the spec ultimately requires.
 
-VQA_BACKEND=qwen is a reserved switch for `VQA/inference.py`
-(Qwen2.5-VL-3B + a LoRA adapter fine-tuned on BigEarthNet, satisfying the
-spec's mandatory remote-sensing-adaptation requirement) once that adapter's
-weights exist — see `final_qwen_lora/`, not produced yet. Wiring it in only
-touches this file; the agent/controller/API layers are unaffected either way.
+VQA_BACKEND=qwen calls `VQA/inference.py` (Qwen2.5-VL-3B + a LoRA adapter
+fine-tuned on BigEarthNet, satisfying the spec's mandatory
+remote-sensing-adaptation requirement) via `qwen_client.py`, loading
+`final_qwen_lora/` from the repo root.
 """
 from __future__ import annotations
 
 from PIL import Image
 
 from app.config import get_settings
-from app.exceptions import NotFoundError, UpstreamModelError, ValidationFailed
+from app.exceptions import UpstreamModelError, ValidationFailed
 from app.tools.base import Tool, ToolResult
 from app.tools.gemini_client import generate_content_with_retry
+from app.tools.qwen_client import run_qwen_vqa
 from app.types import InputBundle
 
 _PROMPT_TEMPLATE = """You are a remote-sensing visual question answering assistant analyzing a satellite/aerial image.
@@ -40,11 +40,18 @@ def _run_gemini_vqa(image_array, question: str) -> str:
     return generate_content_with_retry(model=settings.gemini_text_model, contents=[prompt, image])
 
 
+def _run_qwen_vqa(image_array, question: str) -> dict:
+    return run_qwen_vqa(Image.fromarray(image_array), question)
+
+
 class SingleImageVqaTool(Tool):
     name = "single_image_vqa"
     description = "Answers a natural-language question about one optical or SAR image."
     requires = ["exactly one single-timestep image (optical_t1 or sar_t1)"]
-    domain_adapted = False  # true once VQA_BACKEND=qwen is wired to a trained adapter
+
+    @property
+    def domain_adapted(self) -> bool:
+        return get_settings().vqa_backend == "qwen"
 
     def run(self, bundle: InputBundle) -> ToolResult:
         image = bundle.single_image
@@ -53,11 +60,16 @@ class SingleImageVqaTool(Tool):
 
         settings = get_settings()
         if settings.vqa_backend == "qwen":
-            raise NotFoundError(
-                "VQA_BACKEND=qwen is configured, but the fine-tuned Qwen-LoRA "
-                "adapter (final_qwen_lora/) has not been produced/wired in yet. "
-                "Set VQA_BACKEND=gemini, or complete the ML integration in "
-                "app/tools/vqa_tool.py."
+            result = _run_qwen_vqa(image.rgb_preview, bundle.query)
+            return ToolResult(
+                answer=result["answer"],
+                parameters={
+                    "backend": "qwen",
+                    "model": result["model"],
+                    "device": result["device"],
+                    "modality": image.modality.value,
+                    "inference_time_seconds": result["inference_time_seconds"],
+                },
             )
         if settings.vqa_backend != "gemini":
             raise UpstreamModelError(f"Unknown VQA_BACKEND: {settings.vqa_backend!r}")

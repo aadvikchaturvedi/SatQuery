@@ -14,6 +14,12 @@ rasterio
 torch
 google-genai
 
+# VQA_BACKEND=qwen: Qwen2.5-VL-3B base model + SatQuery LoRA adapter.
+transformers
+peft
+accelerate
+torchvision
+
 # Testing
 pytest
 pytest-asyncio
