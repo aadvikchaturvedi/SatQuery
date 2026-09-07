@@ -1,0 +1,7 @@
+numpy
+scipy
+matplotlib
+Pillow
+rasterio
+torch
+google-genai

@@ -1,0 +1,20 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+pydantic-settings
+redis
+
+# Shared with vqa_and_change_using_gemini/ — same versions, one install.
+numpy
+scipy
+matplotlib
+Pillow
+rasterio
+torch
+google-genai
+
+# Testing
+pytest
+pytest-asyncio
+httpx
